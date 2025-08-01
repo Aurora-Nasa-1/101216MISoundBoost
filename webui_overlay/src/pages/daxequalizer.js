@@ -13,6 +13,8 @@ class DaxequalizerPage {
     };
     this.eventListeners = [];
     this.daxFilePath = `${window.core.MODULE_PATH}/system/vendor/etc/dolby/dax-default.xml`;
+    this.backupStorageKey = 'dax_initial_backup';
+    this.hasInitialBackup = false;
     
     // 标准化频率范围 (20段专业模式)
     this.standardFrequencies = [47, 141, 234, 328, 469, 656, 844, 1031, 1313, 1688, 2250, 3000, 3750, 4688, 5813, 7125, 9000, 11250, 13875, 19688];
@@ -101,6 +103,7 @@ class DaxequalizerPage {
   }
 
   async onShow() {
+    await this.checkAndCreateInitialBackup();
     await this.loadDaxConfig();
     this.setupEventListeners();
     this.renderEqualizer();
@@ -161,6 +164,39 @@ class DaxequalizerPage {
     document.getElementById('help-btn').addEventListener('click', () => {
       this.showHelp();
     });
+  }
+
+  async checkAndCreateInitialBackup() {
+    try {
+      // 检查是否已有初始备份
+      const existingBackup = localStorage.getItem(this.backupStorageKey);
+      if (existingBackup) {
+        this.hasInitialBackup = true;
+        return;
+      }
+
+      // 检查DAX文件是否存在
+      const checkResult = await window.core.exec(`test -f "${this.daxFilePath}" && echo "exists" || echo "not_exists"`);
+      
+      if (checkResult.stdout.trim() === 'exists') {
+        // 文件存在，创建初始备份
+        const result = await window.core.exec(`cat "${this.daxFilePath}"`);
+        if (result.errno === 0 && result.stdout) {
+          const backupData = {
+            timestamp: new Date().toISOString(),
+            content: result.stdout,
+            version: '1.0'
+          };
+          localStorage.setItem(this.backupStorageKey, JSON.stringify(backupData));
+          this.hasInitialBackup = true;
+          window.core.showToast(window.i18n.t('daxEqualizer.initialBackupCreated'), 'info');
+        }
+      }
+    } catch (error) {
+      if (window.core.isDebugMode()) {
+        window.core.logDebug(`Initial backup failed: ${error.message}`, 'DAX');
+      }
+    }
   }
 
   async loadDaxConfig() {
@@ -250,48 +286,105 @@ class DaxequalizerPage {
   }
 
   parseDaxXml(xmlContent) {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
-    
-    // Parse presets
-    this.data.presets = [];
-    const presets = xmlDoc.querySelectorAll('preset');
-    presets.forEach(preset => {
-      const id = preset.getAttribute('id');
-      const type = preset.getAttribute('type');
-      const bands = [];
+    try {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
       
-      if (type === 'ieq') {
-        const ieqBands = preset.querySelectorAll('band_ieq');
-        ieqBands.forEach(band => {
-          bands.push({
-            frequency: parseInt(band.getAttribute('frequency')),
-            target: parseInt(band.getAttribute('target'))
-          });
-        });
-      } else if (type === 'geq') {
-        const geqBands = preset.querySelectorAll('band_geq');
-        geqBands.forEach(band => {
-          bands.push({
-            frequency: parseInt(band.getAttribute('frequency')),
-            gain: parseInt(band.getAttribute('gain'))
-          });
-        });
+      // 检查解析错误
+      const parseError = xmlDoc.querySelector('parsererror');
+      if (parseError) {
+        throw new Error(`XML解析错误: ${parseError.textContent}`);
       }
       
-      this.data.presets.push({ id, type, bands });
-    });
-
-    // Parse profiles
-    this.data.profiles = [];
-    const profiles = xmlDoc.querySelectorAll('profile');
-    profiles.forEach(profile => {
-      const id = profile.getAttribute('id');
-      const name = profile.getAttribute('name');
-      const group = profile.getAttribute('group');
+      // Parse profiles first
+      this.data.profiles = [];
+      const profiles = xmlDoc.querySelectorAll('profile');
+      profiles.forEach(profile => {
+        const id = profile.getAttribute('id');
+        const name = profile.getAttribute('name') || id;
+        const group = profile.getAttribute('group') || 'default';
+        
+        // 获取该profile下的presets
+        const profilePresets = [];
+        const presets = profile.querySelectorAll('preset');
+        presets.forEach(preset => {
+          const presetId = preset.getAttribute('id');
+          const type = preset.getAttribute('type');
+          profilePresets.push({ id: presetId, type });
+        });
+        
+        this.data.profiles.push({ id, name, group, presets: profilePresets });
+      });
       
-      this.data.profiles.push({ id, name, group });
-    });
+      // Parse presets
+      this.data.presets = [];
+      const allPresets = xmlDoc.querySelectorAll('preset');
+      allPresets.forEach(preset => {
+        const id = preset.getAttribute('id');
+        const type = preset.getAttribute('type');
+        const bands = [];
+        
+        // 找到preset所属的profile
+        const parentProfile = preset.closest('profile');
+        const profileId = parentProfile ? parentProfile.getAttribute('id') : 'unknown';
+        
+        if (type === 'ieq') {
+          const ieqBands = preset.querySelectorAll('band_ieq');
+          ieqBands.forEach(band => {
+            const frequency = parseInt(band.getAttribute('frequency'));
+            const target = parseInt(band.getAttribute('target')) || 0;
+            if (!isNaN(frequency)) {
+              bands.push({ frequency, target });
+            }
+          });
+        } else if (type === 'geq') {
+          const geqBands = preset.querySelectorAll('band_geq');
+          geqBands.forEach(band => {
+            const frequency = parseInt(band.getAttribute('frequency'));
+            const gain = parseFloat(band.getAttribute('gain')) || 0;
+            if (!isNaN(frequency)) {
+              bands.push({ frequency, gain });
+            }
+          });
+        }
+        
+        this.data.presets.push({ id, type, bands, profileId });
+      });
+      
+      // 如果没有找到任何配置，初始化默认数据
+      if (this.data.profiles.length === 0 || this.data.presets.length === 0) {
+        window.core.showToast(window.i18n.t('daxEqualizer.noConfigFound'), 'info');
+        this.initializeDefaultData();
+      }
+      
+    } catch (error) {
+      window.core.logDebug(`XML parsing error: ${error.message}`, 'DAX');
+      // 解析失败时初始化默认数据
+      this.initializeDefaultData();
+      throw error;
+    }
+  }
+  
+  initializeDefaultData() {
+    // 初始化默认profile和preset数据
+    this.data.profiles = [
+      { id: 'music', name: 'Music', group: 'media', presets: [{ id: 'music_ieq', type: 'ieq' }, { id: 'music_geq', type: 'geq' }] }
+    ];
+    
+    this.data.presets = [
+      {
+        id: 'music_ieq',
+        type: 'ieq',
+        profileId: 'music',
+        bands: this.simpleFrequencies.map(freq => ({ frequency: freq, target: 0 }))
+      },
+      {
+        id: 'music_geq',
+        type: 'geq',
+        profileId: 'music',
+        bands: this.simpleFrequencies.map(freq => ({ frequency: freq, gain: 0 }))
+      }
+    ];
   }
 
   populateSelectors() {
@@ -306,16 +399,16 @@ class DaxequalizerPage {
         option.textContent = profile.name;
         profileSelect.appendChild(option);
       });
+      
+      // 如果只有一个profile，自动选择它
+      if (this.data.profiles.length === 1) {
+        profileSelect.value = this.data.profiles[0].id;
+        this.selectProfile(this.data.profiles[0].id);
+      }
     }
     
     if (presetSelect) {
-      presetSelect.innerHTML = `<option value="">${window.i18n.t('daxEqualizer.selectPreset')}</option>`;
-      this.data.presets.forEach(preset => {
-        const option = document.createElement('option');
-        option.value = preset.id;
-        option.textContent = `${preset.id} (${preset.type.toUpperCase()})`;
-        presetSelect.appendChild(option);
-      });
+      this.populatePresetsForProfile(this.data.currentProfile?.id);
     }
   }
 
@@ -499,6 +592,13 @@ class DaxequalizerPage {
     this.data.currentProfile = this.data.profiles.find(p => p.id === profileId);
     // 根据选中的profile更新preset列表
     this.populatePresetsForProfile(profileId);
+    
+    // 清空当前选中的preset
+    this.data.currentPreset = null;
+    const presetSelect = document.getElementById('preset-select');
+    if (presetSelect) {
+      presetSelect.value = '';
+    }
   }
 
   selectPreset(presetId) {
@@ -512,9 +612,35 @@ class DaxequalizerPage {
   }
 
   populatePresetsForProfile(profileId) {
-    // 这里可以根据profile过滤presets
-    // 目前简单实现，显示所有presets
-    this.populateSelectors();
+    const presetSelect = document.getElementById('preset-select');
+    if (!presetSelect) return;
+    
+    presetSelect.innerHTML = `<option value="">${window.i18n.t('daxEqualizer.selectPreset')}</option>`;
+    
+    if (profileId) {
+      // 过滤属于当前profile的presets
+      const profilePresets = this.data.presets.filter(preset => preset.profileId === profileId);
+      profilePresets.forEach(preset => {
+        const option = document.createElement('option');
+        option.value = preset.id;
+        option.textContent = `${preset.id} (${preset.type.toUpperCase()})`;
+        presetSelect.appendChild(option);
+      });
+      
+      // 如果只有一个preset，自动选择它
+      if (profilePresets.length === 1) {
+        presetSelect.value = profilePresets[0].id;
+        this.selectPreset(profilePresets[0].id);
+      }
+    } else {
+      // 显示所有presets
+      this.data.presets.forEach(preset => {
+        const option = document.createElement('option');
+        option.value = preset.id;
+        option.textContent = `${preset.id} (${preset.type.toUpperCase()}) - ${preset.profileId}`;
+        presetSelect.appendChild(option);
+      });
+    }
   }
 
   async resetEqualizer() {
@@ -727,40 +853,176 @@ class DaxequalizerPage {
 
   async backupConfig() {
     try {
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const backupPath = `/sdcard/dax-backup-${timestamp}.xml`;
-      
-      const result = await window.core.exec(`cp "${this.daxFilePath}" "${backupPath}"`);
-      if (result.errno === 0) {
-        window.core.showToast(window.i18n.t('daxEqualizer.backupSuccess', { path: backupPath }), 'success');
-      } else {
-        window.core.showError(window.i18n.t('daxEqualizer.backupError'), result.stderr);
+      // 读取当前配置
+      const result = await window.core.exec(`cat "${this.daxFilePath}"`);
+      if (result.errno !== 0 || !result.stdout) {
+        throw new Error('无法读取当前配置文件');
       }
+      
+      // 保存到浏览器存储
+      const timestamp = new Date().toISOString();
+      const backupData = {
+        timestamp,
+        content: result.stdout,
+        version: '1.0',
+        type: 'manual'
+      };
+      
+      const backupKey = `dax_backup_${Date.now()}`;
+      localStorage.setItem(backupKey, JSON.stringify(backupData));
+      
+      // 同时保存到文件系统（可选）
+      const fileTimestamp = timestamp.replace(/[:.]/g, '-');
+      const backupPath = `/sdcard/dax-backup-${fileTimestamp}.xml`;
+      await window.core.exec(`cp "${this.daxFilePath}" "${backupPath}"`);
+      
+      window.core.showToast(window.i18n.t('daxEqualizer.backupSuccess', { path: '浏览器存储和' + backupPath }), 'success');
     } catch (error) {
       window.core.showError(window.i18n.t('daxEqualizer.backupError'), error.message);
     }
   }
 
   async restoreConfig() {
-    const backupPath = await window.DialogManager.showInput(
-      window.i18n.t('daxEqualizer.restoreTitle'),
-      window.i18n.t('daxEqualizer.restoreMessage'),
-      window.i18n.t('daxEqualizer.restorePlaceholder')
-    );
-    
-    if (!backupPath) return;
-    
     try {
-      const result = await window.core.exec(`cp "${backupPath}" "${this.daxFilePath}"`);
-      if (result.errno === 0) {
-        window.core.showToast(window.i18n.t('daxEqualizer.restoreSuccess'), 'success');
-        await this.loadDaxConfig();
-        this.renderEqualizer();
-      } else {
-        window.core.showError(window.i18n.t('daxEqualizer.restoreError'), result.stderr);
+      // 获取所有可用的备份
+      const backups = this.getAvailableBackups();
+      
+      if (backups.length === 0) {
+        window.core.showError(window.i18n.t('daxEqualizer.restoreError'), '没有找到可用的备份');
+        return;
       }
+      
+      // 显示备份选择对话框
+      const selectedBackup = await this.showBackupSelectionDialog(backups);
+      if (!selectedBackup) return;
+      
+      // 恢复选中的备份
+      await this.restoreFromBackup(selectedBackup);
+      
     } catch (error) {
       window.core.showError(window.i18n.t('daxEqualizer.restoreError'), error.message);
+    }
+  }
+  
+  getAvailableBackups() {
+    const backups = [];
+    
+    // 获取初始备份
+    const initialBackup = localStorage.getItem(this.backupStorageKey);
+    if (initialBackup) {
+      try {
+        const backup = JSON.parse(initialBackup);
+        backups.push({
+          key: this.backupStorageKey,
+          name: '初始配置备份',
+          timestamp: backup.timestamp,
+          type: 'initial'
+        });
+      } catch (e) {
+        // 忽略解析错误
+      }
+    }
+    
+    // 获取手动备份
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('dax_backup_')) {
+        try {
+          const backup = JSON.parse(localStorage.getItem(key));
+          backups.push({
+            key,
+            name: `手动备份 - ${new Date(backup.timestamp).toLocaleString()}`,
+            timestamp: backup.timestamp,
+            type: backup.type || 'manual'
+          });
+        } catch (e) {
+          // 忽略解析错误
+        }
+      }
+    }
+    
+    // 按时间排序
+    return backups.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  }
+  
+  async showBackupSelectionDialog(backups) {
+    return new Promise((resolve) => {
+      const options = backups.map(backup => ({
+        value: backup.key,
+        text: backup.name
+      }));
+      
+      window.DialogManager.showGeneric({
+        title: window.i18n.t('daxEqualizer.restoreTitle'),
+        content: `
+          <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px;">${window.i18n.t('daxEqualizer.selectBackup')}:</label>
+            <select id="backup-select" style="width: 100%; padding: 8px; border: 1px solid var(--outline); border-radius: 4px; background: var(--surface);">
+              ${options.map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+            </select>
+          </div>
+        `,
+        buttons: [
+          {
+            text: window.i18n.t('common.cancel'),
+            action: () => resolve(null)
+          },
+          {
+            text: window.i18n.t('daxEqualizer.restore'),
+            action: () => {
+              const select = document.getElementById('backup-select');
+              resolve(select ? select.value : null);
+            }
+          }
+        ],
+        closable: true,
+        onClose: () => resolve(null)
+      });
+    });
+  }
+  
+  async restoreFromBackup(backupKey) {
+    try {
+      const backupData = localStorage.getItem(backupKey);
+      if (!backupData) {
+        throw new Error('备份数据不存在');
+      }
+      
+      const backup = JSON.parse(backupData);
+      if (!backup.content) {
+        throw new Error('备份数据格式错误');
+      }
+      
+      // 创建临时文件
+      const tempFile = '/tmp/dax-restore.xml';
+      const escapedXml = backup.content.replace(/'/g, "'\"'\"'");
+      
+      // 写入临时文件
+      const writeResult = await window.core.exec(`echo '${escapedXml}' > "${tempFile}"`);
+      if (writeResult.errno !== 0) {
+        throw new Error(`创建临时文件失败: ${writeResult.stderr}`);
+      }
+      
+      // 复制到目标位置
+      const copyResult = await window.core.exec(`cp "${tempFile}" "${this.daxFilePath}"`);
+      if (copyResult.errno !== 0) {
+        throw new Error(`恢复文件失败: ${copyResult.stderr}`);
+      }
+      
+      // 清理临时文件
+      await window.core.exec(`rm "${tempFile}"`);
+      
+      // 设置权限
+      await window.core.exec(`chmod 644 "${this.daxFilePath}"`);
+      
+      window.core.showToast(window.i18n.t('daxEqualizer.restoreSuccess'), 'success');
+      
+      // 重新加载配置
+      await this.loadDaxConfig();
+      this.renderEqualizer();
+      
+    } catch (error) {
+      throw new Error(`恢复配置失败: ${error.message}`);
     }
   }
 

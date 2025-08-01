@@ -49,7 +49,9 @@
     "helpTips": "Usage Tips",
     "helpContent3": "It's recommended to backup the original configuration before making changes. After modification, you need to restart the audio service or reboot the device for changes to take effect.",
     "presetApplied": "Applied preset: {preset}",
-    "defaultConfigCreated": "Default DAX configuration file created"
+    "defaultConfigCreated": "Default DAX configuration file created",
+    "initialBackupCreated": "Initial configuration backup created",
+    "selectBackup": "Select backup to restore"
   },
   "nav": {
     "DaxEqualizer": "DAX Equalizer"

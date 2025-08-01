@@ -1,1 +1,1 @@
-echo "status=stopped" > info.txt
+echo "status=running" > info.txt
