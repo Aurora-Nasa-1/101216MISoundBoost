@@ -80,7 +80,7 @@ class SettingsPage {
       }
 
       // KSU环境使用cat命令读取配置文件
-      const settingsPath = `${window.core.MODULE_PATH}/settings.json`;
+      const settingsPath = `${window.core.MODULE_PATH}/setting.json`;
       window.core.execCommand(`cat "${settingsPath}"`, (output, success) => {
         if (success && output.trim()) {
           try {
