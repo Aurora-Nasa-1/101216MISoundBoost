@@ -1,0 +1,1 @@
+## 1012 1216 XiaoMi/REDMI Phone Sound Boost Module

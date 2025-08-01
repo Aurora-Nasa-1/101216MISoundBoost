@@ -1,0 +1,149 @@
+name: Build Aurora Module
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: 'webui/package-lock.json'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq cmake make zip unzip curl
+    
+    - name: Setup Android NDK
+      uses: nttld/setup-ndk@v1
+      with:
+        ndk-version: r28c
+    
+    - name: Install WebUI dependencies
+      if: hashFiles('webui/package-lock.json') != ''
+      run: |
+        cd webui
+        npm ci
+    
+    - name: Build Aurora Module
+      run: |
+        chmod +x build/build.sh
+        cd build
+        ./build.sh --auto
+
+    - name: Create update.json
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        # Extract variables
+        LATEST_TAG=${GITHUB_REF#refs/tags/}
+        CURRENT_TIME=$(date +"%Y%m%d")
+        Github_update_repo=$(jq -r '.build.Github_update_repo // false' module/settings.json)
+        action_name=$(jq -r '.build.module_properties.module_name // false' module/settings.json)
+        package_mode=$(jq -r '.build.package_mode // false' module/settings.json)
+        # Get version with Git tag sync support
+        SYNC_WITH_TAG=$(jq -r '.build.version_sync.sync_with_git_tag // false' module/settings.json)
+        TAG_PREFIX=$(jq -r '.build.version_sync.tag_prefix // "v"' module/settings.json)
+        FALLBACK_VERSION=$(jq -r '.build.version_sync.fallback_version // "1.0.0"' module/settings.json)
+        CONFIG_VERSION=$(jq -r '.build.module_properties.module_version // "1.0.0"' module/settings.json)
+        
+        if [ "$SYNC_WITH_TAG" = "true" ]; then
+          # Use version from Git tag (remove prefix)
+          VERSION=$(echo "$LATEST_TAG" | sed "s/^${TAG_PREFIX}//")
+          echo "Using version from Git tag: $LATEST_TAG -> $VERSION"
+        else
+          # Use version from configuration
+          VERSION="$CONFIG_VERSION"
+          echo "Using version from configuration: $VERSION"
+        fi
+        case "$package_mode" in
+        "single_zip")
+        ADD_TEXT="multi-arch"
+        ;;
+        "separate_zip")
+        ADD_TEXT="arm64-v8a"
+        ;;
+        esac
+        # Create update.json
+        cat > build_output/update.json << EOF
+        {
+          "version": "${VERSION}",
+          "versionCode": "${CURRENT_TIME}",
+          "zipUrl": "https://github.com/${Github_update_repo}/releases/download/${LATEST_TAG}/${action_name}-${LATEST_TAG}-${ADD_TEXT}.zip",
+          "changelog": "https://github.com/${Github_update_repo}/releases/tag/${LATEST_TAG}"
+        }
+        EOF
+        
+        echo "Created update.json with version: ${VERSION}, versionCode: ${CURRENT_TIME}"
+        cat build_output/update.json
+
+    - name: Upload update.json to repository
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        # Configure git
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        # Copy update.json to repository root
+        cp build_output/update.json ./update.json
+        
+        # Check if file exists and has changes
+        if [ ! -f "update.json" ]; then
+          echo "Error: update.json was not created successfully"
+          exit 1
+        fi
+        
+        # Add the file to git staging
+        git add update.json
+        
+        # Check if there are staged changes
+        if git diff --cached --quiet; then
+          echo "No changes in update.json, skipping commit"
+        else
+          # Commit and push the changes
+          git commit -m "Update update.json for release ${GITHUB_REF#refs/tags/}"
+          git push origin HEAD:main
+          echo "Successfully uploaded update.json to repository root"
+        fi
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: aurora-module-${{ github.sha }}
+        path: build_output/*.zip
+        retention-days: 30
+    
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          build_output/*.zip
+          build_output/update.json
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Upload to Release Assets
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        echo "Module built and uploaded successfully!"
+        ls -la build_output/
