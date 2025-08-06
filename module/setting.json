@@ -1,8 +1,8 @@
 {
-    "add": {
-      "type": "boolean",
-      "default": false,
-      "title": "空白",
-      "description": "空白",
-    }
+  "add": {
+    "type": "boolean",
+    "default": false,
+    "title": "空白",
+    "description": "空白"
+  }
 }

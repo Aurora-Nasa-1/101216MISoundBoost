@@ -1,65 +1,64 @@
 {
-  "daxEqualizer": {
-    "title": "DAX 音频均衡器",
-    "description": "调整 Dolby Audio Processing (DAX) 均衡器设置，优化音频体验。支持简单模式和高级模式，提供多种预设和自定义调节功能。",
-    "simpleMode": "简单模式",
-    "advancedMode": "高级模式",
-    "quickPresets": "快速预设",
-    "customEqualizer": "自定义均衡器",
-    "presetFlat": "平坦",
-    "presetBass": "低音增强",
-    "presetVocal": "人声突出",
-    "presetTreble": "高音增强",
-    "presetRock": "摇滚",
-    "presetPop": "流行",
-    "presetClassical": "古典",
-    "presetJazz": "爵士",
-    "profile": "音频配置文件",
-    "preset": "均衡器预设",
-    "selectProfile": "选择配置文件",
-    "selectPreset": "选择预设",
-    "ieqTab": "智能均衡器 (IEQ)",
-    "geqTab": "图形均衡器 (GEQ)",
-    "reset": "重置",
-    "save": "保存设置",
-    "backup": "备份配置",
-    "restore": "恢复配置",
-    "refresh": "刷新",
-    "help": "帮助",
-    "loading": "加载中...",
-    "loadError": "加载 DAX 配置失败",
-    "saveError": "保存配置失败",
-    "saveSuccess": "配置保存成功",
-    "backupError": "备份配置失败",
-    "backupSuccess": "配置已备份到: {path}",
-    "restoreError": "恢复配置失败",
-    "restoreSuccess": "配置恢复成功",
-    "resetTitle": "重置均衡器",
-    "resetMessage": "确定要重置当前均衡器设置吗？所有未保存的更改将丢失。",
-    "resetSuccess": "均衡器已重置",
-    "saveTitle": "保存配置",
-    "saveMessage": "确定要保存当前均衡器设置吗？这将修改系统配置文件。",
-    "restoreTitle": "恢复配置",
-    "restoreMessage": "请输入备份文件的完整路径:",
-    "restorePlaceholder": "/sdcard/dax-backup-xxx.xml",
-    "helpTitle": "DAX 均衡器帮助",
-    "helpSimple": "简单模式提供10段均衡器调节，范围从 -12dB 到 +12dB。包含多种音乐风格预设，适合大多数用户使用。",
-    "helpContent1": "智能均衡器 (IEQ): 使用目标值调整音频频率响应，范围从 -1000 到 1000。正值增强频率，负值衰减频率。",
-    "helpContent2": "图形均衡器 (GEQ): 使用增益值直接调整各频段，范围从 -12dB 到 +12dB。",
-    "helpTips": "使用提示",
-    "helpContent3": "建议在修改前先备份原始配置。修改后需要重启音频服务或重启设备才能生效。",
-    "presetApplied": "已应用预设: {preset}",
-    "defaultConfigCreated": "已创建默认 DAX 配置文件",
-    "initialBackupCreated": "已创建初始配置备份",
-    "selectBackup": "选择要恢复的备份"
+  "daxPage": {
+    "title": "Dolby DAX 音效配置",
+    "description": "配置 Dolby Digital Audio Experience 音效参数",
+    "profileCard": {
+      "title": "音效配置文件",
+      "description": "选择和管理 DAX 音效配置文件",
+      "currentProfile": "当前配置文件",
+      "loadConfig": "加载配置",
+      "saveConfig": "保存配置",
+      "loading": "加载中..."
+    },
+    "equalizerCard": {
+      "title": "图形均衡器",
+      "description": "调整音频频率响应",
+      "enable": "启用图形均衡器",
+      "reset": "重置均衡器",
+      "presetFlat": "平坦",
+      "presetBass": "低音增强"
+    },
+    "audioEffectsCard": {
+      "title": "音频效果",
+      "description": "配置各种音频增强效果",
+      "virtualizer": "虚拟环绕声",
+      "bassEnhancer": "低音增强",
+      "dialogEnhancer": "对话增强",
+      "volumeLeveler": "音量均衡",
+      "surroundBoost": "环绕声增益",
+      "dialogAmount": "对话增强强度"
+    },
+    "deviceSettingsCard": {
+      "title": "设备设置",
+      "description": "针对不同音频输出设备的专用设置",
+      "deviceType": "设备类型",
+      "speaker": "扬声器",
+      "headphone": "耳机",
+      "other": "其他",
+      "ieqEnable": "智能均衡器",
+      "volmaxBoost": "音量最大增益"
+    },
+    "messages": {
+      "loadingConfig": "正在加载 DAX 配置...",
+      "loadSuccess": "配置加载成功",
+      "loadError": "加载配置失败",
+      "savingConfig": "正在保存 DAX 配置...",
+      "saveSuccess": "配置保存成功",
+      "saveError": "保存配置失败",
+      "saveConfirm": "确定要保存当前的 DAX 音效配置吗？这将覆盖现有配置文件。",
+      "profileSwitched": "已切换到配置",
+      "deviceSwitched": "已切换到{device}设置",
+      "eqReset": "均衡器已重置",
+      "presetApplied": "已应用{preset}预设",
+      "flatPreset": "平坦",
+      "bassPreset": "低音增强"
+    },
+    "actions": {
+      "reload": "重新加载配置",
+      "save": "保存配置"
+    }
   },
   "nav": {
-    "DaxEqualizer": "DAX 均衡器"
-  },
-  "common": {
-    "close": "关闭",
-    "cancel": "取消",
-    "confirm": "确认",
-    "ok": "确定"
+    "DaxPage": "DAX 音效"
   }
 }

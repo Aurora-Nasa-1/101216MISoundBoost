@@ -21,12 +21,12 @@
       "order": 3,
       "module": "settings"
     },
-    "daxequalizer": {
-      "title": "nav.DaxEqualizer",
+    "dax": {
+      "title": "DaxPage",
       "icon": "equalizer",
-      "module": "daxequalizer",
       "showInNav": true,
-      "order": 4
+      "order": 4,
+      "module": "dax"
     }
   },
   "defaultPage": "home"

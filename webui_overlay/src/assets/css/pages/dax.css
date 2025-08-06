@@ -1,0 +1,336 @@
+.dax-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.page-header h2 {
+  color: var(--primary);
+  font: var(--headline-l);
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  color: var(--on-surface-variant);
+  font: var(--body-l);
+  margin: 0;
+}
+
+/* 卡片布局优化 */
+.dax-page .cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.dax-page .cards > * {
+  min-height: auto;
+}
+
+/* 配置文件卡片 */
+.profile-card {
+  background: var(--surface-container);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.profile-card h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+/* 均衡器卡片 */
+.equalizer-card {
+  background: var(--surface-container);
+  border-radius: 16px;
+  padding: 24px;
+  grid-column: span 2;
+}
+
+.equalizer-card h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+/* 均衡器容器 */
+.eq-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px;
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--surface-container-low);
+  border-radius: 12px;
+  transition: opacity var(--tra);
+}
+
+.eq-band {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.eq-band label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.eq-band label > span:first-child {
+  font: var(--label-s);
+  color: var(--on-surface-variant);
+  text-align: center;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.eq-band input[type="range"] {
+  writing-mode: bt-lr; /* IE */
+  writing-mode: vertical-lr; /* Standard */
+  width: 120px;
+  height: 24px;
+  transform: rotate(180deg);
+  margin: 8px 0;
+}
+
+.eq-band label > span:last-child {
+  font: var(--label-s);
+  color: var(--primary);
+  font-weight: 500;
+  min-width: 48px;
+  text-align: center;
+}
+
+/* 音频效果卡片 */
+.audio-effects-card {
+  background: var(--surface-container);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.audio-effects-card h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+/* 设备设置卡片 */
+.device-settings-card {
+  background: var(--surface-container);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.device-settings-card h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+/* 开关组样式优化 */
+.switches {
+  margin: 16px 0;
+}
+
+.switches label {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--outline-variant);
+}
+
+.switches label:last-child {
+  border-bottom: none;
+}
+
+.switches label > span {
+  font: var(--body-l);
+  color: var(--on-surface);
+}
+
+/* 滑块标签样式 */
+.dax-page label:has(> input[type="range"]) {
+  margin: 16px 0;
+}
+
+.dax-page label:has(> input[type="range"]) > span:first-child {
+  font: var(--body-l);
+  color: var(--on-surface);
+  margin-bottom: 8px;
+}
+
+.dax-page label:has(> input[type="range"]) > span:last-child {
+  font: var(--label-m);
+  color: var(--primary);
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+/* 选择框样式 */
+.dax-page select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--on-surface);
+  font: var(--body-l);
+  transition: border-color var(--tra);
+}
+
+.dax-page select:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.dax-page select:hover {
+  border-color: var(--on-surface);
+}
+
+/* 按钮组样式 */
+.dax-page fieldset {
+  margin-top: 24px;
+  gap: 12px;
+}
+
+.dax-page fieldset button {
+  flex: 1;
+  min-width: 120px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .dax-page {
+    padding: 16px;
+  }
+  
+  .dax-page .cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .equalizer-card {
+    grid-column: span 1;
+  }
+  
+  .eq-container {
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+    gap: 8px;
+  }
+  
+  .eq-band input[type="range"] {
+    width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h2 {
+    font: var(--headline-m);
+  }
+  
+  .eq-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .eq-band input[type="range"] {
+    width: 80px;
+  }
+  
+  .dax-page fieldset {
+    flex-direction: column;
+  }
+  
+  .dax-page fieldset button {
+    width: 100%;
+  }
+}
+
+/* 加载状态 */
+.dax-page .loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* 禁用状态的均衡器 */
+.eq-container.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* 卡片标题图标 */
+.dax-page .cards h3::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background-color: var(--primary);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+}
+
+.profile-card h3::before {
+  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>');
+}
+
+.equalizer-card h3::before {
+  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 18h2V6H7v12zm4 4h2V2h-2v20zm-8-8h2v-4H3v4zm12 4h2V6h-2v12zm4-8v4h2v-4h-2z"/></svg>');
+}
+
+.audio-effects-card h3::before {
+  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>');
+}
+
+.device-settings-card h3::before {
+  mask-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>');
+}
+
+/* 动画效果 */
+.dax-page .cards > * {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 工具提示样式 */
+.tooltip {
+  position: relative;
+  cursor: help;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--inverse-surface);
+  color: var(--inverse-on-surface);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font: var(--label-s);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--tra);
+  z-index: 1000;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+}

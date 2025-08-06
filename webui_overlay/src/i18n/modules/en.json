@@ -1,65 +1,64 @@
 {
-  "daxEqualizer": {
-    "title": "DAX Audio Equalizer",
-    "description": "Adjust Dolby Audio Processing (DAX) equalizer settings to optimize audio experience. Supports simple and advanced modes with various presets and custom adjustment features.",
-    "simpleMode": "Simple Mode",
-    "advancedMode": "Advanced Mode",
-    "quickPresets": "Quick Presets",
-    "customEqualizer": "Custom Equalizer",
-    "presetFlat": "Flat",
-    "presetBass": "Bass Boost",
-    "presetVocal": "Vocal Enhance",
-    "presetTreble": "Treble Boost",
-    "presetRock": "Rock",
-    "presetPop": "Pop",
-    "presetClassical": "Classical",
-    "presetJazz": "Jazz",
-    "profile": "Audio Profile",
-    "preset": "Equalizer Preset",
-    "selectProfile": "Select Profile",
-    "selectPreset": "Select Preset",
-    "ieqTab": "Intelligent EQ (IEQ)",
-    "geqTab": "Graphic EQ (GEQ)",
-    "reset": "Reset",
-    "save": "Save Settings",
-    "backup": "Backup Config",
-    "restore": "Restore Config",
-    "refresh": "Refresh",
-    "help": "Help",
-    "loading": "Loading...",
-    "loadError": "Failed to load DAX configuration",
-    "saveError": "Failed to save configuration",
-    "saveSuccess": "Configuration saved successfully",
-    "backupError": "Failed to backup configuration",
-    "backupSuccess": "Configuration backed up to: {path}",
-    "restoreError": "Failed to restore configuration",
-    "restoreSuccess": "Configuration restored successfully",
-    "resetTitle": "Reset Equalizer",
-    "resetMessage": "Are you sure you want to reset the current equalizer settings? All unsaved changes will be lost.",
-    "resetSuccess": "Equalizer has been reset",
-    "saveTitle": "Save Configuration",
-    "saveMessage": "Are you sure you want to save the current equalizer settings? This will modify the system configuration file.",
-    "restoreTitle": "Restore Configuration",
-    "restoreMessage": "Please enter the full path to the backup file:",
-    "restorePlaceholder": "/sdcard/dax-backup-xxx.xml",
-    "helpTitle": "DAX Equalizer Help",
-    "helpSimple": "Simple mode provides a 10-band equalizer with range from -12dB to +12dB. Includes various music style presets suitable for most users.",
-    "helpContent1": "Intelligent Equalizer (IEQ): Uses target values to adjust audio frequency response, ranging from -1000 to 1000. Positive values enhance frequencies, negative values attenuate them.",
-    "helpContent2": "Graphic Equalizer (GEQ): Directly adjusts frequency bands using gain values, ranging from -12dB to +12dB.",
-    "helpTips": "Usage Tips",
-    "helpContent3": "It's recommended to backup the original configuration before making changes. After modification, you need to restart the audio service or reboot the device for changes to take effect.",
-    "presetApplied": "Applied preset: {preset}",
-    "defaultConfigCreated": "Default DAX configuration file created",
-    "initialBackupCreated": "Initial configuration backup created",
-    "selectBackup": "Select backup to restore"
+  "daxPage": {
+    "title": "Dolby DAX Audio Configuration",
+    "description": "Configure Dolby Digital Audio Experience parameters",
+    "profileCard": {
+      "title": "Audio Profiles",
+      "description": "Select and manage DAX audio profiles",
+      "currentProfile": "Current Profile",
+      "loadConfig": "Load Config",
+      "saveConfig": "Save Config",
+      "loading": "Loading..."
+    },
+    "equalizerCard": {
+      "title": "Graphic Equalizer",
+      "description": "Adjust audio frequency response",
+      "enable": "Enable Graphic Equalizer",
+      "reset": "Reset Equalizer",
+      "presetFlat": "Flat",
+      "presetBass": "Bass Boost"
+    },
+    "audioEffectsCard": {
+      "title": "Audio Effects",
+      "description": "Configure various audio enhancement effects",
+      "virtualizer": "Virtual Surround",
+      "bassEnhancer": "Bass Enhancer",
+      "dialogEnhancer": "Dialog Enhancer",
+      "volumeLeveler": "Volume Leveler",
+      "surroundBoost": "Surround Boost",
+      "dialogAmount": "Dialog Enhancement Amount"
+    },
+    "deviceSettingsCard": {
+      "title": "Device Settings",
+      "description": "Dedicated settings for different audio output devices",
+      "deviceType": "Device Type",
+      "speaker": "Speaker",
+      "headphone": "Headphone",
+      "other": "Other",
+      "ieqEnable": "Intelligent EQ",
+      "volmaxBoost": "Volume Max Boost"
+    },
+    "messages": {
+      "loadingConfig": "Loading DAX configuration...",
+      "loadSuccess": "Configuration loaded successfully",
+      "loadError": "Failed to load configuration",
+      "savingConfig": "Saving DAX configuration...",
+      "saveSuccess": "Configuration saved successfully",
+      "saveError": "Failed to save configuration",
+      "saveConfirm": "Are you sure you want to save the current DAX audio configuration? This will overwrite the existing configuration file.",
+      "profileSwitched": "Switched to profile",
+      "deviceSwitched": "Switched to {device} settings",
+      "eqReset": "Equalizer reset",
+      "presetApplied": "Applied {preset} preset",
+      "flatPreset": "flat",
+      "bassPreset": "bass boost"
+    },
+    "actions": {
+      "reload": "Reload Configuration",
+      "save": "Save Configuration"
+    }
   },
   "nav": {
-    "DaxEqualizer": "DAX Equalizer"
-  },
-  "common": {
-    "close": "Close",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "ok": "OK"
+    "DaxPage": "DAX Audio"
   }
 }
