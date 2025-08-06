@@ -3,7 +3,7 @@
     "AuroraModuleBuild": true,
     "META_INF_default": false,
     "install_script_default": true,
-    "webui_default": false
+    "webui_default": true
   },
 
   "build_module": true,
